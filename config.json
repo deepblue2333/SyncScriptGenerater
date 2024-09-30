@@ -1,0 +1,53 @@
+{
+    "TableName": "headhunting_consultant_job_candidate_act_log",
+    "Comment": "AI猎头-候选人行为记录当日明细表",
+    "DbType": "mysql",
+    "Database": "jobs",
+    "Fields": {
+        "id": {
+            "type": "bigint unsigned",
+            "comment": "主键id",
+            "as": "log_id"
+        },
+        "uid": {
+            "type": "bigint",
+            "comment": "uid"
+        },
+        "job_req_id": {
+            "type": "bigint",
+            "comment": "ai_ht_job_requirements的id"
+        },
+        "candidate_uid": {
+            "type": "bigint",
+            "comment": "候选人的uid"
+        },
+        "act_name": {
+            "type": "varchar",
+            "comment": "行为名称"
+        },
+        "act_uid": {
+            "type": "bigint",
+            "comment": "执行行为的uid"
+        },
+        "extra": {
+            "type": "text",
+            "comment": "其他信息"
+        },
+        "crtime": {
+            "type": "timestamp",
+            "comment": "创建时间",
+            "as": "create_ts"
+        },
+        "uptime": {
+            "type": "timestamp",
+            "comment": "更新时间",
+            "as": "update_ts"
+        }
+    },
+    "PrimaryKey": "id",
+    "layer": "dwd",
+    "Prefix": "dw",
+    "SyncType": "da",
+    "Host": "companydbs2"
+}
+
