@@ -1,7 +1,6 @@
 import unittest
-import json
 
-from main import *
+from src.main import *
 
 class TestGenerateSQL(unittest.TestCase):
 

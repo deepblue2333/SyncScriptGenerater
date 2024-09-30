@@ -8,15 +8,37 @@ from sqlparse.tokens import _TokenType
 # 1 mysql2hive脚本生成
 # 2 格式化sql
 
-
-class SqlDDLPhaser:
-    # 创建一个解析器类，解析mysql建表语句，hive建表语句或者ch建表语句
-    def __init__(self):
-        pass
-
-
 import json
 
+class ScriptGenerator:
+    def __init__(self, config):
+        self.config = config
+
+    def generate_dw_create_sql(self):
+        config = self.config
+        table_name = f"{config['layer']}.{config['Prefix']}_{config['Database']}_{config['TableName']}_{config['SyncType']}"
+        comment = config["Comment"]
+
+        # 生成字段部分
+        fields = config["Fields"]
+        field_sql = []
+
+        for field, field_info in fields.items():
+            field_name = field_info.get("as", field)
+            field_type = mysql2hive_type_mapping.get(field_info["type"])
+            field_comment = field_info["comment"]
+            field_sql.append(f"  `{field_name}` {field_type} COMMENT '{field_comment}'")
+
+        # 拼接最终的SQL语句
+        sql = f"CREATE EXTERNAL TABLE `{table_name}`(\n"
+        sql += ",\n".join(field_sql)
+        sql += f"\n) COMMENT '{comment}'\n"
+        sql += "PARTITIONED BY ( `p_date` string COMMENT '日期')\n"
+        sql += "ROW FORMAT DELIMITED FIELDS TERMINATED BY '\\t'\n"
+        sql += "STORED AS ORC\n"
+        sql += "TBLPROPERTIES ('orc.compression'='snappy');"
+
+        return sql
 
 
 # 数据类型转换映射
@@ -28,30 +50,7 @@ mysql2hive_type_mapping = {
     "timestamp": "timestamp"
 }
 
-def generate_dw_create_sql(config):
-    table_name = f"{config['layer']}.{config['Prefix']}_{config['Database']}_{config['TableName']}_{config['SyncType']}"
-    comment = config["Comment"]
 
-    # 生成字段部分
-    fields = config["Fields"]
-    field_sql = []
-
-    for field, field_info in fields.items():
-        field_name = field_info.get("as", field)
-        field_type = mysql2hive_type_mapping.get(field_info["type"])
-        field_comment = field_info["comment"]
-        field_sql.append(f"  `{field_name}` {field_type} COMMENT '{field_comment}'")
-
-    # 拼接最终的SQL语句
-    sql = f"CREATE EXTERNAL TABLE `{table_name}`(\n"
-    sql += ",\n".join(field_sql)
-    sql += f"\n) COMMENT '{comment}'\n"
-    sql += "PARTITIONED BY ( `p_date` string COMMENT '日期')\n"
-    sql += "ROW FORMAT DELIMITED FIELDS TERMINATED BY '\\t'\n"
-    sql += "STORED AS ORC\n"
-    sql += "TBLPROPERTIES ('orc.compression'='snappy');"
-
-    return sql
 
 
 # 数据类型转换映射
@@ -215,36 +214,36 @@ SETTINGS index_granularity = 8192;  # 定义了每个索引块中行的数量'''
     return shard_table_sql, distributed_table_sql
 
 
+if __name__ == "__main__":
 
+    # 读取 JSON 配置文件
+    with open('config.json', 'r') as f:
+        config = json.load(f)
 
-# 读取 JSON 配置文件
-with open('config.json', 'r') as f:
-    config = json.load(f)
+    # 生成 SQL
+    # sql_statement = generate_dw_create_sql(config)
 
-# 生成 SQL
-sql_statement = generate_dw_create_sql(config)
+    # 输出 SQL
+    # print(sql_statement)
 
-# 输出 SQL
-print(sql_statement)
+    sql_statement = generate_mysql2hive_conf(config)
+    print(sql_statement)
 
-sql_statement = generate_mysql2hive_conf(config)
-print(sql_statement)
+    # 生成 SQL
+    create_table_sql = generate_create_ods_table_sql(config)
 
-# 生成 SQL
-create_table_sql = generate_create_ods_table_sql(config)
+    # 打印结果
+    print(create_table_sql)
 
-# 打印结果
-print(create_table_sql)
+    insert_sql = generate_insert_ods_table_sql(config)
+    print(insert_sql)
 
-insert_sql = generate_insert_ods_table_sql(config)
-print(insert_sql)
+    insert_sql = generate_insert_dw_table_sql(config)
+    print(insert_sql)
 
-insert_sql = generate_insert_dw_table_sql(config)
-print(insert_sql)
+    conf_result = generate_dw_task_conf(config)
+    print(conf_result)
 
-conf_result = generate_dw_task_conf(config)
-print(conf_result)
-
-shard_table_sql, distributed_table_sql = generate_ch_create_sql(config)
-print(shard_table_sql)
-print(distributed_table_sql)
+    shard_table_sql, distributed_table_sql = generate_ch_create_sql(config)
+    print(shard_table_sql)
+    print(distributed_table_sql)
