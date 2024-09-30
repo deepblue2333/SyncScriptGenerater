@@ -62,4 +62,4 @@ if __name__ == "__main__":
     md_gen.add_image("示例图片", "https://www.example.com/image.jpg")
 
     # 保存为文件
-    md_gen.save_to_file("generated_markdown.md")
+    md_gen.save_to_file("README.md")

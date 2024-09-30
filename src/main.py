@@ -41,7 +41,7 @@ def main():
     # md_gen.add_image("示例图片", "https://www.example.com/image.jpg")
 
     # 保存为文件
-    md_gen.save_to_file("同步脚本.md")
+    md_gen.save_to_file("target/同步脚本.md")
 
 
 if __name__ == '__main__':
